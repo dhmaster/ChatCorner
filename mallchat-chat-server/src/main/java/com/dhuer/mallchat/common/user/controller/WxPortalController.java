@@ -1,5 +1,6 @@
 package com.dhuer.mallchat.common.user.controller;
 
+import com.dhuer.mallchat.common.user.service.WXMsgService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
@@ -26,6 +27,8 @@ import org.springframework.web.servlet.view.RedirectView;
 public class WxPortalController {
     @Autowired
     private WxMpService wxMpService;
+    @Autowired
+    private WXMsgService wxMsgService;
 
     private final WxMpService wxService;
     private final WxMpMessageRouter messageRouter;
@@ -60,9 +63,11 @@ public class WxPortalController {
     @GetMapping("/callBack")
     public RedirectView callBack(@RequestParam String code) throws WxErrorException {
         WxOAuth2AccessToken accessToken = wxMpService.getOAuth2Service().getAccessToken(code);
-        WxOAuth2UserInfo zh_cn = wxMpService.getOAuth2Service().getUserInfo(accessToken, "zh_CN");
-        System.out.println(zh_cn);
-        return null;
+        WxOAuth2UserInfo userInfo = wxMpService.getOAuth2Service().getUserInfo(accessToken, "zh_CN");
+        wxMsgService.authorize(userInfo);
+        RedirectView redirectView = new RedirectView();
+        redirectView.setUrl("www.mallchat.cn");
+        return redirectView;
     }
 
     @PostMapping(produces = "application/xml; charset=UTF-8")
