@@ -86,7 +86,6 @@ public class WXMsgServiceImpl implements WXMsgService {
             log.error("getEventKey error! EventKey:{}",wxMpXmlMessage.getEventKey(),e);
             return null;
         }
-
     }
 
     @Override
