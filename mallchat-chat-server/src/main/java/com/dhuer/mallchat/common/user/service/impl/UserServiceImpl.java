@@ -24,4 +24,9 @@ public class UserServiceImpl implements UserService {
         // TODO 用户注册事件
         return insert.getId();
     }
+
+    @Override
+    public Object getUserInfo(Long uid) {
+        return null;
+    }
 }
