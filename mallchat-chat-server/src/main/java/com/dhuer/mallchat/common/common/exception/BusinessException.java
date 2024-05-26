@@ -22,9 +22,16 @@ public class BusinessException extends RuntimeException{
         this.errorCode = CommonErrorEnum.BUSINESS_ERROR.getErrorCode();
         this.errorMsg = errorMsg;
     }
+
     public BusinessException(Integer errorCode, String errorMsg) {
         super(errorMsg);
         this.errorCode = errorCode;
         this.errorMsg = errorMsg;
+    }
+
+    public BusinessException(ErrorEnum errorEnum) {
+        super(errorEnum.getErrorMsg());
+        this.errorCode = errorEnum.getErrorCode();
+        this.errorMsg = errorEnum.getErrorMsg();
     }
 }
