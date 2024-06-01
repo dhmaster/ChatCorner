@@ -2,9 +2,11 @@ package com.dhuer.mallchat.common.websocket.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
+import com.dhuer.mallchat.common.common.event.UserOnlineEvent;
 import com.dhuer.mallchat.common.user.dao.UserDao;
 import com.dhuer.mallchat.common.user.domain.entity.User;
 import com.dhuer.mallchat.common.user.service.LoginService;
+import com.dhuer.mallchat.common.websocket.NettyUtil;
 import com.dhuer.mallchat.common.websocket.domain.dto.WSChannelExtraDTO;
 import com.dhuer.mallchat.common.websocket.domain.enums.WSRespTypeEnum;
 import com.dhuer.mallchat.common.websocket.domain.vo.resp.WSBaseResp;
@@ -18,12 +20,15 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import lombok.SneakyThrows;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.result.WxMpQrCodeTicket;
+import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,6 +46,8 @@ public class WebSocketServiceImpl implements WebSocketService {
     private UserDao userDao;
     @Autowired
     private LoginService loginService;
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
     /***
      * 管理所有用户的连接（登录态/游客）
      * */
@@ -50,10 +57,11 @@ public class WebSocketServiceImpl implements WebSocketService {
     /**
      * 临时保存登录 code 与 channel 的映射关系
      */
-    private static final Cache<Integer,Channel> WAIT_LOGIN_MAP = Caffeine.newBuilder()
+    private static final Cache<Integer, Channel> WAIT_LOGIN_MAP = Caffeine.newBuilder()
             .maximumSize(MAXIMUM_SIZE)
             .expireAfterWrite(DURATION)
             .build();
+
     @Override
     public void connect(Channel channel) {
         ONLINE_WS_MAP.put(channel, new WSChannelExtraDTO());
@@ -69,7 +77,7 @@ public class WebSocketServiceImpl implements WebSocketService {
     public void scanLoginSuccess(Integer code, Long uid) {
         // 确认连接在机器上
         Channel channel = WAIT_LOGIN_MAP.getIfPresent(code);
-        if(Objects.isNull(channel)) {
+        if (Objects.isNull(channel)) {
             return;
         }
         User user = userDao.getById(uid);
@@ -93,7 +101,7 @@ public class WebSocketServiceImpl implements WebSocketService {
     @Override
     public void authorize(Channel channel, String token) {
         Long validUid = loginService.getValidUid(token);
-        if(Objects.nonNull(validUid)) {
+        if (Objects.nonNull(validUid)) {
             User user = userDao.getById(validUid);
             loginSuccess(channel, user, token);
         } else {
@@ -105,9 +113,10 @@ public class WebSocketServiceImpl implements WebSocketService {
         // 保存 channel 对应的 uid
         WSChannelExtraDTO wsChannelExtraDTO = ONLINE_WS_MAP.get(channel);
         wsChannelExtraDTO.setUid(user.getId());
-        // TODO 用户上线成功的事件
-        // 推送登陆成功消息
-        sendMsg(channel, WebSocketAdapter.buildResp(user, token));
+        // 用户上线成功的事件
+        user.setLastOptTime(new Date());
+        user.refreshIp(NettyUtil.getAttr(channel, NettyUtil.IP));
+        applicationEventPublisher.publishEvent(new UserOnlineEvent(this, user));
     }
 
     @SneakyThrows
@@ -116,7 +125,7 @@ public class WebSocketServiceImpl implements WebSocketService {
         // 生成随机码
         Integer code = generateLoginCode(channel);
         // 找微信申请带参二维码
-        WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket(code,(int)DURATION.getSeconds());
+        WxMpQrCodeTicket wxMpQrCodeTicket = wxMpService.getQrcodeService().qrCodeCreateTmpTicket(code, (int) DURATION.getSeconds());
         // 把二维码推给前端
         sendMsg(channel, WebSocketAdapter.buildResp(wxMpQrCodeTicket));
     }
@@ -130,7 +139,7 @@ public class WebSocketServiceImpl implements WebSocketService {
         // 每次循环结束，会检查 WAIT_LOGIN_MAP 中是否存在以生成的 code 为键的映射，如果存在，则 code 被使用过，要重新生成。
         do {
             code = RandomUtil.randomInt(Integer.MAX_VALUE);
-        } while (Objects.nonNull(WAIT_LOGIN_MAP.asMap().putIfAbsent(code,channel)));
+        } while (Objects.nonNull(WAIT_LOGIN_MAP.asMap().putIfAbsent(code, channel)));
         return code;
     }
 }
