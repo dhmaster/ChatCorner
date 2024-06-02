@@ -1,5 +1,6 @@
 package com.dhuer.mallchat.common.websocket.service;
 
+import com.dhuer.mallchat.common.websocket.domain.vo.resp.WSBaseResp;
 import io.netty.channel.Channel;
 
 /**
@@ -19,4 +20,6 @@ public interface WebSocketService {
     void waitAuthorize(Integer code);
 
     void authorize(Channel channel, String token);
+
+    void sendMsgToAll(WSBaseResp<?> msg);
 }

@@ -1,28 +1,32 @@
 package com.dhuer.mallchat.common.user.service.impl;
 
 import com.dhuer.mallchat.common.common.annotation.RedissonLock;
+import com.dhuer.mallchat.common.common.event.UserBlackEvent;
 import com.dhuer.mallchat.common.common.event.UserRegisterEvent;
 import com.dhuer.mallchat.common.common.exception.BusinessException;
 import com.dhuer.mallchat.common.common.utils.AssertUtil;
+import com.dhuer.mallchat.common.user.dao.BlackDao;
 import com.dhuer.mallchat.common.user.dao.ItemConfigDao;
 import com.dhuer.mallchat.common.user.dao.UserBackpackDao;
 import com.dhuer.mallchat.common.user.dao.UserDao;
-import com.dhuer.mallchat.common.user.domain.entity.ItemConfig;
-import com.dhuer.mallchat.common.user.domain.entity.User;
-import com.dhuer.mallchat.common.user.domain.entity.UserBackpack;
+import com.dhuer.mallchat.common.user.domain.entity.*;
+import com.dhuer.mallchat.common.user.domain.enums.BlackTypeEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemTypeEnum;
+import com.dhuer.mallchat.common.user.domain.vo.req.BlackReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.BadgeResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.UserInfoResp;
 import com.dhuer.mallchat.common.user.service.UserService;
 import com.dhuer.mallchat.common.user.service.adapter.UserAdapter;
 import com.dhuer.mallchat.common.user.service.cache.ItemCache;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +46,8 @@ public class UserServiceImpl implements UserService {
     private ItemConfigDao itemConfigDao;
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired
+    private BlackDao blackDao;
 
     @Override
     @Transactional
@@ -99,5 +105,33 @@ public class UserServiceImpl implements UserService {
         ItemConfig itemConfig = itemConfigDao.getById(firstValidItem.getItemId());
         AssertUtil.equal(itemConfig.getType(), ItemTypeEnum.BADGE.getType(), "只有徽章才能佩戴。");
         userDao.wearingBadge(uid, itemId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void black(BlackReq req) {
+        Long uid = req.getUid();
+        Black user = new Black();
+        user.setType(BlackTypeEnum.UID.getType());
+        user.setTarget(uid.toString());
+        blackDao.save(user);
+        // 拉黑所有 IP
+        User byId = userDao.getById(uid);
+        blackIp(Optional.ofNullable(byId.getIpInfo()).map(IpInfo::getCreateIp).orElse(null));
+        blackIp(Optional.ofNullable(byId.getIpInfo()).map(IpInfo::getUpdateIp).orElse(null));
+        applicationEventPublisher.publishEvent(new UserBlackEvent(this, byId));
+    }
+
+    private void blackIp(String ip) {
+        if (StringUtils.isBlank(ip)) {
+            return;
+        }
+        // 防止 CreateIp 和 UpdateIp 相同时拉黑两次同一 ip 而报错
+        try {
+            Black insert = new Black();
+            insert.setType(BlackTypeEnum.IP.getType());
+            insert.setTarget(ip);
+            blackDao.save(insert);
+        } catch (Exception e) {}
     }
 }

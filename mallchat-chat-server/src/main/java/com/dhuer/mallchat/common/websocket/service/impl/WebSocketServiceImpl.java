@@ -5,7 +5,10 @@ import cn.hutool.json.JSONUtil;
 import com.dhuer.mallchat.common.common.event.UserOnlineEvent;
 import com.dhuer.mallchat.common.user.dao.UserDao;
 import com.dhuer.mallchat.common.user.domain.entity.User;
+import com.dhuer.mallchat.common.user.domain.enums.RoleEnum;
+import com.dhuer.mallchat.common.user.service.IUserRoleService;
 import com.dhuer.mallchat.common.user.service.LoginService;
+import com.dhuer.mallchat.common.user.service.RoleService;
 import com.dhuer.mallchat.common.websocket.NettyUtil;
 import com.dhuer.mallchat.common.websocket.domain.dto.WSChannelExtraDTO;
 import com.dhuer.mallchat.common.websocket.domain.enums.WSRespTypeEnum;
@@ -25,6 +28,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -48,6 +52,11 @@ public class WebSocketServiceImpl implements WebSocketService {
     private LoginService loginService;
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+    @Autowired
+    private RoleService roleService;
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
     /***
      * 管理所有用户的连接（登录态/游客）
      * */
@@ -109,10 +118,19 @@ public class WebSocketServiceImpl implements WebSocketService {
         }
     }
 
+    @Override
+    public void sendMsgToAll(WSBaseResp<?> msg) {
+        ONLINE_WS_MAP.forEach((channel, ext) -> {
+            threadPoolTaskExecutor.execute(() -> sendMsg(channel, msg));
+        });
+    }
+
     private void loginSuccess(Channel channel, User user, String token) {
         // 保存 channel 对应的 uid
         WSChannelExtraDTO wsChannelExtraDTO = ONLINE_WS_MAP.get(channel);
         wsChannelExtraDTO.setUid(user.getId());
+        // 推送成功消息
+        sendMsg(channel, WebSocketAdapter.buildResp(user, token, roleService.hasRight(user.getId(), RoleEnum.CHAT_MANAGER)));
         // 用户上线成功的事件
         user.setLastOptTime(new Date());
         user.refreshIp(NettyUtil.getAttr(channel, NettyUtil.IP));
