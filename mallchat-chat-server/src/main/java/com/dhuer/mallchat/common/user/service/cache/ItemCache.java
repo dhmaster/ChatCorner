@@ -3,6 +3,7 @@ package com.dhuer.mallchat.common.user.service.cache;
 import com.dhuer.mallchat.common.user.dao.ItemConfigDao;
 import com.dhuer.mallchat.common.user.domain.entity.ItemConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -22,4 +23,7 @@ public class ItemCache {
     public List<ItemConfig> getByType(Integer itemType) {
         return itemConfigDao.getByType(itemType);
     }
+
+    @CacheEvict(cacheNames = "item", key = "'itemsByType:'+#itemType")
+    public void evictByType(Integer itemType) {}
 }

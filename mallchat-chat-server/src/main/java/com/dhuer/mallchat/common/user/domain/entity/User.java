@@ -21,6 +21,7 @@ import lombok.*;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+// autoResultMap = true 让 MyBatis-plus 框架自动处理实体类与数据库表字段的映射关系
 @TableName(value = "user", autoResultMap = true)
 @Builder
 @NoArgsConstructor
