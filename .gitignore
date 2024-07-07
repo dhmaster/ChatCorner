@@ -75,3 +75,9 @@ ChannelBizBrandWallClient.java
 
 # yml
 *.yml
+
+# Ignore application-test.properties file
+mallchat-chat-server/src/main/resources/application-test.properties
+
+# Ignore test directory
+mallchat-chat-server/src/test/
