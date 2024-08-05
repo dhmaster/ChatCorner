@@ -74,9 +74,27 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         return insert;
     }
 
+    /**
+     * 创建单聊房间
+     * @param roomId
+     * @param uidList
+     * @return
+     */
     private RoomFriend createNewFriendRoom(Long roomId, List<Long> uidList) {
         RoomFriend insert = ChatAdapter.buildFriendRoom(roomId, uidList);
         roomFriendDao.save(insert);
         return insert;
+    }
+
+    /**
+     * 禁用聊天室
+     * @param uidList
+     */
+    @Override
+    public void disableFriendRoom(List<Long> uidList) {
+        AssertUtil.isNotEmpty(uidList, "房间禁用失败，好友数量不对");
+        AssertUtil.equal(uidList.size(), 2, "房间禁用失败，好友数量不对");
+        String key = ChatAdapter.generateRoomKey(uidList);
+        roomFriendDao.disableRoom(key);
     }
 }

@@ -185,4 +185,26 @@ public class FriendServiceImpl implements FriendService {
         Integer unreadCount = userApplyDao.getUnreadCount(uid);
         return new FriendApplyUnreadResp(unreadCount);
     }
+
+    /**
+     * 删除好友
+     * @param uid
+     * @param targetUid
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteFriend(Long uid, Long targetUid) {
+        List<UserFriend> userFriends = userFriendDao.getUserFriend(uid, targetUid);
+        if (CollectionUtil.isEmpty(userFriends)) {
+            log.info("{},{} 没有好友关系！", uid, targetUid);
+            return;
+        }
+        List<Long> friendRecordIds = userFriends.stream()
+                .map(UserFriend::getId)
+                .collect(Collectors.toList());
+        // 移除两条好友记录
+        userFriendDao.removeByIds(friendRecordIds);
+        // 禁用聊天室
+        chatRoomService.disableFriendRoom(Arrays.asList(uid, targetUid));
+    }
 }

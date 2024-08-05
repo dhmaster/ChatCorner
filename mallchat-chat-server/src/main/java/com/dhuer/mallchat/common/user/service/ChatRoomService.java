@@ -19,4 +19,10 @@ public interface ChatRoomService {
      * @return
      */
     RoomFriend createFriendRoom(List<Long> uidList);
+
+    /**
+     * 禁用聊天室
+     * @param uidList
+     */
+    void disableFriendRoom(List<Long> uidList);
 }

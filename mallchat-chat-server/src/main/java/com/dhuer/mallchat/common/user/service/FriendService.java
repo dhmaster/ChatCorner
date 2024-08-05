@@ -55,4 +55,11 @@ public interface FriendService {
      * @return
      */
     FriendApplyUnreadResp unreadCount(Long uid);
+
+    /**
+     * 删除好友
+     * @param uid
+     * @param targetUid
+     */
+    void deleteFriend(Long uid, Long targetUid);
 }

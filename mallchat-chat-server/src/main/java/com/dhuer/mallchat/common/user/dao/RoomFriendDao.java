@@ -35,4 +35,14 @@ public class RoomFriendDao extends ServiceImpl<RoomFriendMapper, RoomFriend> {
                 .set(RoomFriend::getStatus, NormalOrInnormalEnum.NORMAL.getStatus())
                 .update();
     }
+
+    /**
+     * 禁用聊天室
+     * @param key
+     */
+    public void disableRoom(String key) {
+        lambdaUpdate().eq(RoomFriend::getRoomKey, key)
+                .set(RoomFriend::getStatus, NormalOrInnormalEnum.IN_NORMAL.getStatus())
+                .update();
+    }
 }

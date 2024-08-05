@@ -8,6 +8,7 @@ import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.common.utils.RequestHolder;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendDeleteReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
@@ -70,6 +71,14 @@ public class FriendController {
     public ApiResult<FriendApplyUnreadResp> unreadCount() {
         Long uid = RequestHolder.get().getUid();
         return ApiResult.success(friendService.unreadCount(uid));
+    }
+
+    @DeleteMapping()
+    @ApiOperation("删除好友")
+    public ApiResult<Void> delete(@Valid @RequestBody FriendDeleteReq request) {
+        Long uid = RequestHolder.get().getUid();
+        friendService.deleteFriend(uid, request.getTargetUid());
+        return ApiResult.success();
     }
 }
 
