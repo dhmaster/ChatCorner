@@ -55,4 +55,16 @@ public class UserFriendDao extends ServiceImpl<UserFriendMapper, UserFriend> {
                 .select(UserFriend::getId)
                 .list();
     }
+
+    /**
+     * 批量判断是否为自己好友
+     * @param uid
+     * @param uidList
+     * @return
+     */
+    public List<UserFriend> getByFriends(Long uid, List<Long> uidList) {
+        return lambdaQuery().eq(UserFriend::getUid, uid)
+                .in(UserFriend::getFriendUid, uidList)
+                .list();
+    }
 }

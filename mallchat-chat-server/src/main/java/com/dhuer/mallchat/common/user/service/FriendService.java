@@ -6,8 +6,10 @@ import com.dhuer.mallchat.common.common.domain.vo.resp.CursorPageBaseResp;
 import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendCheckReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendCheckResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 
 /**
@@ -62,4 +64,12 @@ public interface FriendService {
      * @param targetUid
      */
     void deleteFriend(Long uid, Long targetUid);
+
+    /**
+     * 批量判断是否为自己好友
+     * @param uid
+     * @param request
+     * @return
+     */
+    FriendCheckResp check(Long uid, FriendCheckReq request);
 }

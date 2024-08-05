@@ -18,8 +18,10 @@ import com.dhuer.mallchat.common.user.domain.entity.UserFriend;
 import com.dhuer.mallchat.common.user.domain.enums.ApplyStatusEnum;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendCheckReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendCheckResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import com.dhuer.mallchat.common.user.service.ChatRoomService;
@@ -36,6 +38,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -206,5 +209,26 @@ public class FriendServiceImpl implements FriendService {
         userFriendDao.removeByIds(friendRecordIds);
         // 禁用聊天室
         chatRoomService.disableFriendRoom(Arrays.asList(uid, targetUid));
+    }
+
+    /**
+     * 批量判断是否为自己好友
+     * @param uid
+     * @param request
+     * @return
+     */
+    @Override
+    public FriendCheckResp check(Long uid, FriendCheckReq request) {
+        List<UserFriend> friendList = userFriendDao.getByFriends(uid, request.getUidList());
+        Set<Long> friendUidSet = friendList.stream()
+                .map(UserFriend::getFriendUid)
+                .collect(Collectors.toSet());
+        List<FriendCheckResp.FriendCheck> friendCheckList = request.getUidList().stream().map(friendUid -> {
+            FriendCheckResp.FriendCheck friendCheck = new FriendCheckResp.FriendCheck();
+            friendCheck.setUid(friendUid);
+            friendCheck.setIsFriend(friendUidSet.contains(friendUid));
+            return friendCheck;
+        }).collect(Collectors.toList());
+        return new FriendCheckResp(friendCheckList);
     }
 }

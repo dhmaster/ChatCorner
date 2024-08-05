@@ -8,9 +8,11 @@ import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.common.utils.RequestHolder;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendCheckReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendDeleteReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendCheckResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import io.swagger.annotations.Api;
@@ -79,6 +81,13 @@ public class FriendController {
         Long uid = RequestHolder.get().getUid();
         friendService.deleteFriend(uid, request.getTargetUid());
         return ApiResult.success();
+    }
+
+    @GetMapping("/check")
+    @ApiOperation("批量判断是否为自己好友")
+    public ApiResult<FriendCheckResp> check(@Valid FriendCheckReq request) {
+        Long uid = RequestHolder.get().getUid();
+        return ApiResult.success(friendService.check(uid, request));
     }
 }
 
