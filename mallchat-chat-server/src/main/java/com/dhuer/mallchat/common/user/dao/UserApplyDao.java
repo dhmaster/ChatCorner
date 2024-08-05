@@ -73,4 +73,15 @@ public class UserApplyDao extends ServiceImpl<UserApplyMapper, UserApply> {
                 .eq(UserApply::getTargetId, uid)
                 .update();
     }
+
+    /**
+     * 好友申请未读数
+     * @param uid
+     * @return
+     */
+    public Integer getUnreadCount(Long uid) {
+        return lambdaQuery().eq(UserApply::getTargetId, uid)
+                .eq(UserApply::getReadStatus, ApplyReadStatusEnum.UNREAD.getCode())
+                .count();
+    }
 }

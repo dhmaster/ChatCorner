@@ -9,6 +9,7 @@ import com.dhuer.mallchat.common.common.utils.RequestHolder;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import io.swagger.annotations.Api;
@@ -62,6 +63,13 @@ public class FriendController {
     public ApiResult<PageBaseResp<FriendApplyResp>> applyList(@Valid PageBaseReq request) {
         Long uid = RequestHolder.get().getUid();
         return ApiResult.success(friendService.applyList(uid, request));
+    }
+
+    @GetMapping("/apply/unreadCount")
+    @ApiOperation("好友申请未读数")
+    public ApiResult<FriendApplyUnreadResp> unreadCount() {
+        Long uid = RequestHolder.get().getUid();
+        return ApiResult.success(friendService.unreadCount(uid));
     }
 }
 

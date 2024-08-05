@@ -19,6 +19,7 @@ import com.dhuer.mallchat.common.user.domain.enums.ApplyStatusEnum;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import com.dhuer.mallchat.common.user.service.ChatRoomService;
@@ -172,5 +173,16 @@ public class FriendServiceImpl implements FriendService {
                 .stream().map(UserApply::getId)
                 .collect(Collectors.toList());
         userApplyDao.readApply(uid, applyIds);
+    }
+
+    /**
+     * 好友申请未读数
+     * @param uid
+     * @return
+     */
+    @Override
+    public FriendApplyUnreadResp unreadCount(Long uid) {
+        Integer unreadCount = userApplyDao.getUnreadCount(uid);
+        return new FriendApplyUnreadResp(unreadCount);
     }
 }

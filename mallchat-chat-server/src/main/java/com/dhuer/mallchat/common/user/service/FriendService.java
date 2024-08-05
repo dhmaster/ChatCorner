@@ -7,6 +7,7 @@ import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyUnreadResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 
 /**
@@ -47,4 +48,11 @@ public interface FriendService {
      * @return
      */
     PageBaseResp<FriendApplyResp> applyList(Long uid, PageBaseReq request);
+
+    /**
+     * 好友申请未读数
+     * @param uid
+     * @return
+     */
+    FriendApplyUnreadResp unreadCount(Long uid);
 }
