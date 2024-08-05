@@ -4,14 +4,14 @@ import com.dhuer.mallchat.common.common.domain.vo.req.CursorPageBaseReq;
 import com.dhuer.mallchat.common.common.domain.vo.resp.ApiResult;
 import com.dhuer.mallchat.common.common.domain.vo.resp.CursorPageBaseResp;
 import com.dhuer.mallchat.common.common.utils.RequestHolder;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -37,6 +37,21 @@ public class FriendController {
     public ApiResult<CursorPageBaseResp<FriendResp>> friendList(@Valid CursorPageBaseReq request) {
         Long uid = RequestHolder.get().getUid();
         return ApiResult.success(friendService.friendList(uid, request));
+    }
+
+    @PostMapping("/apply")
+    @ApiOperation("申请好友")
+    public ApiResult<Void> apply(@Valid @RequestBody FriendApplyReq request) {
+        Long uid = RequestHolder.get().getUid();
+        friendService.apply(uid, request);
+        return ApiResult.success();
+    }
+
+    @PutMapping("/apply")
+    @ApiOperation("审批同意")
+    public ApiResult<Void> applyApprove(@Valid @RequestBody FriendApproveReq request) {
+        friendService.applyApprove(RequestHolder.get().getUid(), request);
+        return ApiResult.success();
     }
 }
 

@@ -21,8 +21,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserFriendDao extends ServiceImpl<UserFriendMapper, UserFriend> {
 
+    /**
+     * 获取好友列表
+     * @param uid
+     * @param cursorPageBaseReq
+     * @return
+     */
     public CursorPageBaseResp<UserFriend> getFriendPage(Long uid, CursorPageBaseReq cursorPageBaseReq) {
         return CursorUtils.getCursorPageByMysql(this, cursorPageBaseReq,
                 wrapper -> wrapper.eq(UserFriend::getUid, uid), UserFriend::getId);
+    }
+
+    /**
+     * 查询是否是好友关系
+     * @param uid
+     * @param targetUid
+     * @return
+     */
+    public UserFriend getByFriend(Long uid, Long targetUid) {
+        return lambdaQuery().eq(UserFriend::getUid, uid)
+                .eq(UserFriend::getFriendUid, targetUid)
+                .one();
     }
 }

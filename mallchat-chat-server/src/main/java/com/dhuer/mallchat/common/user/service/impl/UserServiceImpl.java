@@ -12,7 +12,7 @@ import com.dhuer.mallchat.common.user.domain.entity.*;
 import com.dhuer.mallchat.common.user.domain.enums.BlackTypeEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemTypeEnum;
-import com.dhuer.mallchat.common.user.domain.vo.req.BlackReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.user.BlackReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.BadgeResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.UserInfoResp;
 import com.dhuer.mallchat.common.user.service.UserService;

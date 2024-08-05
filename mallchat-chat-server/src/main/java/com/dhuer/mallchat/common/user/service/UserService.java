@@ -1,7 +1,7 @@
 package com.dhuer.mallchat.common.user.service;
 
 import com.dhuer.mallchat.common.user.domain.entity.User;
-import com.dhuer.mallchat.common.user.domain.vo.req.BlackReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.user.BlackReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.BadgeResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.UserInfoResp;
 
