@@ -1,11 +1,14 @@
 package com.dhuer.mallchat.common.user.controller;
 
 import com.dhuer.mallchat.common.common.domain.vo.req.CursorPageBaseReq;
+import com.dhuer.mallchat.common.common.domain.vo.req.PageBaseReq;
 import com.dhuer.mallchat.common.common.domain.vo.resp.ApiResult;
 import com.dhuer.mallchat.common.common.domain.vo.resp.CursorPageBaseResp;
+import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.common.utils.RequestHolder;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import io.swagger.annotations.Api;
@@ -52,6 +55,13 @@ public class FriendController {
     public ApiResult<Void> applyApprove(@Valid @RequestBody FriendApproveReq request) {
         friendService.applyApprove(RequestHolder.get().getUid(), request);
         return ApiResult.success();
+    }
+
+    @GetMapping("/apply/list")
+    @ApiOperation("好友申请列表")
+    public ApiResult<PageBaseResp<FriendApplyResp>> applyList(@Valid PageBaseReq request) {
+        Long uid = RequestHolder.get().getUid();
+        return ApiResult.success(friendService.applyList(uid, request));
     }
 }
 

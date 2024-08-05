@@ -7,6 +7,7 @@ import com.dhuer.mallchat.common.user.domain.enums.ApplyReadStatusEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ApplyStatusEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ApplyTypeEnum;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 
 import java.util.List;
@@ -49,5 +50,17 @@ public class FriendAdapter {
         userApply.setStatus(ApplyStatusEnum.WAIT_APPROVAL.getCode());
         userApply.setReadStatus(ApplyReadStatusEnum.UNREAD.getCode());
         return userApply;
+    }
+
+    public static List<FriendApplyResp> buildFriendApplyList(List<UserApply> records) {
+        return records.stream().map(userApply -> {
+            FriendApplyResp friendApplyResp = new FriendApplyResp();
+            friendApplyResp.setUid(userApply.getUid());
+            friendApplyResp.setType(userApply.getType());
+            friendApplyResp.setApplyId(userApply.getId());
+            friendApplyResp.setMsg(userApply.getMsg());
+            friendApplyResp.setStatus(friendApplyResp.getStatus());
+            return friendApplyResp;
+        }).collect(Collectors.toList());
     }
 }

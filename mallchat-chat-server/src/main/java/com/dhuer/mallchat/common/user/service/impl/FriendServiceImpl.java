@@ -1,8 +1,12 @@
 package com.dhuer.mallchat.common.user.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dhuer.mallchat.common.common.annotation.RedissonLock;
 import com.dhuer.mallchat.common.common.domain.vo.req.CursorPageBaseReq;
+import com.dhuer.mallchat.common.common.domain.vo.req.PageBaseReq;
 import com.dhuer.mallchat.common.common.domain.vo.resp.CursorPageBaseResp;
+import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.common.event.UserApplyEvent;
 import com.dhuer.mallchat.common.common.utils.AssertUtil;
 import com.dhuer.mallchat.common.user.dao.UserApplyDao;
@@ -14,6 +18,7 @@ import com.dhuer.mallchat.common.user.domain.entity.UserFriend;
 import com.dhuer.mallchat.common.user.domain.enums.ApplyStatusEnum;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 import com.dhuer.mallchat.common.user.service.FriendService;
 import com.dhuer.mallchat.common.user.service.ChatRoomService;
@@ -138,5 +143,34 @@ public class FriendServiceImpl implements FriendService {
         userFriend2.setUid(targetUid);
         userFriend2.setFriendUid(uid);
         userFriendDao.saveBatch(Lists.newArrayList(userFriend1, userFriend2));
+    }
+
+    /**
+     * 分页查询好友申请
+     * @param uid
+     * @param request
+     * @return
+     */
+    @Override
+    public PageBaseResp<FriendApplyResp> applyList(Long uid, PageBaseReq request) {
+        IPage<UserApply> userApplyIPage = userApplyDao.friendApplyList(uid, request.plusPage());
+        if (CollectionUtil.isEmpty(userApplyIPage.getRecords())) {
+            return PageBaseResp.empty();
+        }
+        // 将这些申请设置为已读
+        readApply(uid, userApplyIPage);
+        return PageBaseResp.init(userApplyIPage, FriendAdapter.buildFriendApplyList(userApplyIPage.getRecords()));
+    }
+
+    /**
+     * 已读所有申请
+     * @param uid
+     * @param userApplyIPage
+     */
+    private void readApply(Long uid, IPage<UserApply> userApplyIPage) {
+        List<Long> applyIds = userApplyIPage.getRecords()
+                .stream().map(UserApply::getId)
+                .collect(Collectors.toList());
+        userApplyDao.readApply(uid, applyIds);
     }
 }

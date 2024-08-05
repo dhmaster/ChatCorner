@@ -1,9 +1,12 @@
 package com.dhuer.mallchat.common.user.service;
 
 import com.dhuer.mallchat.common.common.domain.vo.req.CursorPageBaseReq;
+import com.dhuer.mallchat.common.common.domain.vo.req.PageBaseReq;
 import com.dhuer.mallchat.common.common.domain.vo.resp.CursorPageBaseResp;
+import com.dhuer.mallchat.common.common.domain.vo.resp.PageBaseResp;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApplyReq;
 import com.dhuer.mallchat.common.user.domain.vo.req.friend.FriendApproveReq;
+import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendApplyResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.friend.FriendResp;
 
 /**
@@ -36,4 +39,12 @@ public interface FriendService {
      * @param request
      */
     void applyApprove(Long uid, FriendApproveReq request);
+
+    /**
+     * 好友申请列表
+     * @param uid
+     * @param request
+     * @return
+     */
+    PageBaseResp<FriendApplyResp> applyList(Long uid, PageBaseReq request);
 }
