@@ -49,11 +49,19 @@ public class UserBackpackDao extends ServiceImpl<UserBackpackMapper, UserBackpac
                 .update();
     }
 
-    public List<UserBackpack> getByItemIds(Long uid, List<Long> itemId) {
+    public List<UserBackpack> getByItemIds(Long uid, List<Long> itemIdList) {
         return lambdaQuery()
                 .eq(UserBackpack::getUid, uid)
                 .eq(UserBackpack::getStatus, YesOrNoEnum.NO.getStatus())
-                .in(UserBackpack::getItemId, itemId)
+                .in(UserBackpack::getItemId, itemIdList)
+                .list();
+    }
+
+    public List<UserBackpack> getByItemIds(List<Long> uidList, List<Long> itemIdList) {
+        return lambdaQuery()
+                .in(UserBackpack::getUid, uidList)
+                .in(UserBackpack::getItemId, itemIdList)
+                .eq(UserBackpack::getStatus, YesOrNoEnum.NO.getStatus())
                 .list();
     }
 

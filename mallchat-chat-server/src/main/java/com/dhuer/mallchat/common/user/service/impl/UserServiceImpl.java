@@ -8,24 +8,29 @@ import com.dhuer.mallchat.common.user.dao.BlackDao;
 import com.dhuer.mallchat.common.user.dao.ItemConfigDao;
 import com.dhuer.mallchat.common.user.dao.UserBackpackDao;
 import com.dhuer.mallchat.common.user.dao.UserDao;
+import com.dhuer.mallchat.common.user.domain.dto.ItemInfoDTO;
+import com.dhuer.mallchat.common.user.domain.dto.SummaryInfoDTO;
 import com.dhuer.mallchat.common.user.domain.entity.*;
 import com.dhuer.mallchat.common.user.domain.enums.BlackTypeEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemEnum;
 import com.dhuer.mallchat.common.user.domain.enums.ItemTypeEnum;
 import com.dhuer.mallchat.common.user.domain.vo.req.user.BlackReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.user.ItemInfoReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.user.SummaryInfoReq;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.BadgeResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.UserInfoResp;
 import com.dhuer.mallchat.common.user.service.UserService;
 import com.dhuer.mallchat.common.user.service.adapter.UserAdapter;
 import com.dhuer.mallchat.common.user.service.cache.ItemCache;
+import com.dhuer.mallchat.common.user.service.cache.UserCache;
+import com.dhuer.mallchat.common.user.service.cache.UserSummaryCache;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +52,10 @@ public class UserServiceImpl implements UserService {
     private ApplicationEventPublisher applicationEventPublisher;
     @Autowired
     private BlackDao blackDao;
+    @Autowired
+    private UserCache userCache;
+    @Autowired
+    private UserSummaryCache userSummaryCache;
 
     @Override
     @Transactional
@@ -64,6 +73,64 @@ public class UserServiceImpl implements UserService {
         User user = userDao.getById(uid);
         Integer modifyNameCount = userBackpackDao.getCountByValidItemId(uid, ItemEnum.MODIFY_NAME_CARD.getId());
         return UserAdapter.buildUserInfo(user, modifyNameCount);
+    }
+
+    /**
+     * 获取用户汇总信息
+     * @param req
+     * @return
+     */
+    @Override
+    public List<SummaryInfoDTO> getSummaryUserInfo(SummaryInfoReq req) {
+        // 需要前端同步的 uid
+        List<Long> uidList = getNeedSyncUidList(req.getReqList());
+        // 加载用户信息
+        Map<Long, SummaryInfoDTO> batch = userSummaryCache.getBatch(uidList);
+        return req.getReqList().stream()
+                .map(a -> batch.containsKey(a.getUid()) ? batch.get(a.getUid()) : SummaryInfoDTO.skip(a.getUid()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 获取需要加载用户信息的用户 uid
+     * @param reqList
+     * @return
+     */
+    private List<Long> getNeedSyncUidList(List<SummaryInfoReq.infoReq> reqList) {
+        List<Long> needSyncList = new ArrayList<>();
+        List<Long> userModifyTime = userCache.getUserModifyTime(reqList.stream()
+                .map(SummaryInfoReq.infoReq::getUid)
+                .collect(Collectors.toList()));
+        for (int i=0; i<reqList.size(); i++) {
+            SummaryInfoReq.infoReq infoReq = reqList.get(i);
+            Long modifyTime = userModifyTime.get(i);
+            if (Objects.isNull(infoReq.getLastModifyTime()) || (Objects.nonNull(modifyTime) && modifyTime> infoReq.getLastModifyTime())) {
+                needSyncList.add(infoReq.getUid());
+            }
+        }
+        return needSyncList;
+    }
+
+    /**
+     * 获取徽章汇总信息
+     * @param req
+     * @return
+     */
+    @Override
+    public List<ItemInfoDTO> getItemInfo(ItemInfoReq req) {
+        return req.getReqList().stream().map(a -> {
+            ItemConfig itemConfig = itemCache.getById(a.getItemId());
+            // 简单做，根据更新时间 update_time 判断徽章信息是否被修改
+            if (Objects.nonNull(a.getLastModifyTime()) && a.getLastModifyTime() >= itemConfig.getUpdateTime().getTime()) {
+                return ItemInfoDTO.skip(a.getItemId());
+            }
+            ItemInfoDTO dto = new ItemInfoDTO();
+            dto.setItemId(a.getItemId());
+            dto.setImg(itemConfig.getImg());
+            dto.setDesc(itemConfig.getDescribe());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     // 告诉 Spring 这个方法是事务性的，即方法内部的操作要么全部成功，要么在发生异常时全部回滚。

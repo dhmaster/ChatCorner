@@ -3,10 +3,10 @@ package com.dhuer.mallchat.common.user.controller;
 import com.dhuer.mallchat.common.common.domain.vo.resp.ApiResult;
 import com.dhuer.mallchat.common.common.utils.AssertUtil;
 import com.dhuer.mallchat.common.common.utils.RequestHolder;
+import com.dhuer.mallchat.common.user.domain.dto.ItemInfoDTO;
+import com.dhuer.mallchat.common.user.domain.dto.SummaryInfoDTO;
 import com.dhuer.mallchat.common.user.domain.enums.RoleEnum;
-import com.dhuer.mallchat.common.user.domain.vo.req.user.BlackReq;
-import com.dhuer.mallchat.common.user.domain.vo.req.user.ModifyNameReq;
-import com.dhuer.mallchat.common.user.domain.vo.req.user.WearingBadgeReq;
+import com.dhuer.mallchat.common.user.domain.vo.req.user.*;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.BadgeResp;
 import com.dhuer.mallchat.common.user.domain.vo.resp.user.UserInfoResp;
 import com.dhuer.mallchat.common.user.service.RoleService;
@@ -41,6 +41,19 @@ public class UserController {
     public ApiResult<UserInfoResp> getUserInfo(){
         return ApiResult.success(userService.getUserInfo(RequestHolder.get().getUid()));
     }
+
+    @PostMapping("/summary/userInfo/batch")
+    @ApiOperation("用户聚合信息-需要刷新的用户返回新信息，不需要刷新的不返回全部信息")
+    public ApiResult<List<SummaryInfoDTO>> getSummaryUserInfo(@Valid @RequestBody SummaryInfoReq req) {
+        return ApiResult.success(userService.getSummaryUserInfo(req));
+    }
+
+    @PostMapping("/badges/batch")
+    @ApiOperation("徽章聚合信息-需要刷新的返回新信息，不需要刷新的不返回全部信息")
+    public ApiResult<List<ItemInfoDTO>> getItemInfo(@Valid @RequestBody ItemInfoReq req) {
+        return ApiResult.success(userService.getItemInfo(req));
+    }
+
     @PutMapping("/name")
     @ApiOperation("修改用户名")
     // 想要校验入参的话要加 @Valid 注解

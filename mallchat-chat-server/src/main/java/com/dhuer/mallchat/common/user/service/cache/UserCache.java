@@ -1,5 +1,7 @@
 package com.dhuer.mallchat.common.user.service.cache;
 
+import com.dhuer.mallchat.common.common.constant.RedisKey;
+import com.dhuer.mallchat.common.common.utils.RedisUtils;
 import com.dhuer.mallchat.common.user.dao.BlackDao;
 import com.dhuer.mallchat.common.user.dao.ItemConfigDao;
 import com.dhuer.mallchat.common.user.dao.UserRoleDao;
@@ -50,5 +52,12 @@ public class UserCache {
     @CacheEvict(cacheNames = "user", key = "'blackList'")
     public Map<Integer, Set<String>> evictBlackMap() {
         return null;
+    }
+
+    public List<Long> getUserModifyTime(List<Long> uidList) {
+        List<String> keys = uidList.stream()
+                .map(uid -> RedisKey.getKey(RedisKey.USER_MODIFY_STRING, uid))
+                .collect(Collectors.toList());
+        return RedisUtils.mget(keys, Long.class);
     }
 }
